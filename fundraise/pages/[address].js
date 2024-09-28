@@ -295,5 +295,19 @@ const Donated = styled.div`
   margin-top: 15px;
   background-color: ${(props) => props.theme.bgDiv};
 `;
-const LiveDonation = styled.div`
- 
+const LiveDonation = styled.div``;
+const DonationTitle = styled.h3`
+  font-size: 1.2em;
+  color: ${(props) => props.theme.color};
+  margin-bottom: 10px;
+`;
+const Donation = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: ${(props) => props.theme.bgDiv};
+  margin-bottom: 5px;
+  border-radius: 5px;
+`;
+const DonationData = styled.span`
+  font-size: 1`;
