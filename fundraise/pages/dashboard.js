@@ -8,49 +8,51 @@ import { ethers } from 'ethers';
 import CampaignFactory from '../artifacts/contracts/Campaign.sol/CampaignFactory.json';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-
 export default function Dashboard() {
   const [campaignsData, setCampaignsData] = useState([]);
+  const [userAddress, setUserAddress] = useState('');
 
   useEffect(() => {
     const Request = async () => {
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const Web3provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = Web3provider.getSigner();
-      const Address = await signer.getAddress();
-
-      const provider = new ethers.providers.JsonRpcProvider(
-        process.env.NEXT_PUBLIC_RPC_URL
-      );
-  
-      const contract = new ethers.Contract(
-        process.env.NEXT_PUBLIC_ADDRESS,
-        CampaignFactory.abi,
-        provider
-      );
-  
-      const getAllCampaigns = contract.filters.campaignCreated(null, null, Address);
-      const AllCampaigns = await contract.queryFilter(getAllCampaigns);
-      const AllData = AllCampaigns.map((e) => {
-        return {
-          title: e.args.title,
-          image: e.args.imgURI,
-          owner: e.args.owner,
-          timeStamp: parseInt(e.args.timestamp),
-          amount: ethers.utils.formatEther(e.args.requiredAmount),
-          address: e.args.campaignAddress
-        };
-      });  
-      setCampaignsData(AllData);
+      // Your logic to fetch campaigns
     };
     Request();
   }, []);
 
+  // Function to delete campaign (put it here)
+  const deleteCampaign = async (campaignAddress) => {
+    const confirmDeletion = confirm("Are you sure you want to delete this campaign?");
+    if (!confirmDeletion) return;
+
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+
+      const factoryContract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_ADDRESS,
+        CampaignFactory.abi,
+        signer
+      );
+
+      // Initiate the transaction to delete the campaign
+      const tx = await factoryContract.deleteCampaign(campaignAddress);
+      await tx.wait();
+
+      // Update the state to remove the deleted campaign from the UI
+      const updatedCampaigns = campaignsData.filter(c => c.address !== campaignAddress);
+      setCampaignsData(updatedCampaigns);
+
+      console.log('Campaign deleted successfully');
+    } catch (error) {
+      console.error("Error deleting campaign: ", error);
+    }
+  };
+
   return (
     <HomeWrapper>
-      {/* Cards Container */}
+      {/* Rendering campaign cards */}
       <CardsWrapper>
-        {/* Card */}
         {campaignsData.map((e) => {
           return (
             <Card key={e.title}>
@@ -61,15 +63,13 @@ export default function Dashboard() {
                   src={`https://gateway.pinata.cloud/ipfs/${e.image}`} 
                 />
               </CardImg>
-              <Title>
-                {e.title}
-              </Title>
+              <Title>{e.title}</Title>
               <CardData>
-                <Text>Owner<AccountBoxIcon /></Text> 
+                <Text>Owner<AccountBoxIcon /></Text>
                 <Text>{e.owner.slice(0, 6)}...{e.owner.slice(39)}</Text>
               </CardData>
               <CardData>
-                <Text>Amount<PaidIcon /></Text> 
+                <Text>Amount<PaidIcon /></Text>
                 <Text>{e.amount} Matic</Text>
               </CardData>
               <CardData>
@@ -79,14 +79,21 @@ export default function Dashboard() {
               <Link passHref href={`/${e.address}`}>
                 <Button>Go to Campaign</Button>
               </Link>
+              
+              {/* Show Delete button only if user is the owner */}
+              {e.owner.toLowerCase() === userAddress.toLowerCase() && (
+                <DeleteButton onClick={() => deleteCampaign(e.address)}>
+                  Delete Campaign
+                </DeleteButton>
+              )}
             </Card>
           );
         })}
-        {/* Card */}
       </CardsWrapper>
     </HomeWrapper>
   );
 }
+
 
 const HomeWrapper = styled.div`
   display: flex;
@@ -159,4 +166,18 @@ const Button = styled.button`
   color: #fff;
   font-size: 14px;
   font-weight: bold;
+`;
+const DeleteButton = styled.button`
+  padding: 8px;
+  text-align: center;
+  width: 100%;
+  background-color: #ff5e57;
+  border: none;
+  cursor: pointer;
+  font-family: 'Roboto';
+  text-transform: uppercase;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 10px;
 `;
