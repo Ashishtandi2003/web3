@@ -1,8 +1,8 @@
 import styled from "styled-components";
 import Image from "next/image";
 import { ethers } from 'ethers';
-import CampaignFactory from '../artifacts/contracts/Campaign.sol/CampaignFactory.json'
-import Campaign from '../artifacts/contracts/Campaign.sol/Campaign.json'
+import CampaignFactory from '../artifacts/contracts/Campaign.sol/CampaignFactory.json';
+import Campaign from '../artifacts/contracts/Campaign.sol/Campaign.json';
 import { useEffect, useState } from "react";
 
 export default function Detail({ Data, DonationsData }) {
@@ -50,7 +50,7 @@ export default function Detail({ Data, DonationsData }) {
     };
 
     Request();
-  }, [change]);
+  }, [Data.address, Data.storyUrl, change]);
 
   const DonateFunds = async () => {
     try {
@@ -118,7 +118,7 @@ export default function Detail({ Data, DonationsData }) {
               );
             })}
           </LiveDonation>
-          <MyDonation>
+          <mydonations>
             <DonationTitle>My Past Donation</DonationTitle>
             {mydonations.map((e) => {
               return (
@@ -129,12 +129,15 @@ export default function Detail({ Data, DonationsData }) {
                 </Donation>
               );
             })}
-          </MyDonation>
+          </mydonations>
         </Donated>
       </RightContainer>
     </DetailWrapper>
   );
 }
+
+// The rest of your code (getStaticPaths, getStaticProps, and styled components) remains the same.
+
 
 export async function getStaticPaths() {
   const provider = new ethers.providers.JsonRpcProvider(
